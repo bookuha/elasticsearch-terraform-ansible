@@ -1,0 +1,38 @@
+- name: Install and configure Elasticsearch
+  hosts: elasticsearch
+  become: true
+  tasks:
+    - name: Install dependencies
+      yum:
+        name: java-11-amazon-corretto
+        state: present
+
+    - name: Add Elasticsearch repository
+      copy:
+        dest: /etc/yum.repos.d/elasticsearch.repo
+        content: |
+          [elasticsearch]
+          name=Elasticsearch repository
+          baseurl=https://artifacts.elastic.co/packages/7.x/yum
+          gpgcheck=1
+          gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+          enabled=1
+          autorefresh=1
+          type=rpm-md
+
+    - name: Install Elasticsearch
+      yum:
+        name: elasticsearch
+        state: present
+
+    - name: Configure Elasticsearch
+      lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: "^#?network.host:"
+        line: "network.host: 0.0.0.0"
+
+    - name: Start and enable Elasticsearch
+      systemd:
+        name: elasticsearch
+        enabled: true
+        state: started
