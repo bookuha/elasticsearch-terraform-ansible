@@ -25,11 +25,22 @@
         name: elasticsearch
         state: present
 
-    - name: Configure Elasticsearch
+    - name: Configure Elasticsearch for single-node setup
       lineinfile:
         path: /etc/elasticsearch/elasticsearch.yml
-        regexp: "^#?network.host:"
-        line: "network.host: 0.0.0.0"
+        line: "{{ item }}"
+      loop:
+        - "cluster.name: my-cluster"
+        - "node.name: node-1"
+        - "network.host: 0.0.0.0"
+        - "discovery.type: single-node"
+      notify: Restart Elasticsearch
+
+    - name: Restart Elasticsearch
+      systemd:
+        name: elasticsearch
+        state: restarted
+        enabled: true
 
     - name: Start and enable Elasticsearch
       systemd:
